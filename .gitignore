@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+linux/*.o
+linux/*.ko
+linux/*.mod
+linux/*.mod.c
+linux/.*.cmd
+linux/Module.symvers
+linux/modules.order
+
+dkms-pre-final-build-backup/
+
+*.exe
+AUDIT.local.md

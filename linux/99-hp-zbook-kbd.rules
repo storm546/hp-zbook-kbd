@@ -1,0 +1,3 @@
+# Filled by install.sh with the selected user's primary group.
+# Raw HID is intentionally root-only while the kernel driver is used.
+ACTION=="add|change", SUBSYSTEM=="leds", KERNEL=="hp::kbd_backlight", TEST=="effect", RUN+="/usr/bin/chgrp @GROUP@ /sys%p/brightness /sys%p/multi_intensity /sys%p/effect /sys%p/key_colors", RUN+="/usr/bin/chmod 0664 /sys%p/brightness /sys%p/multi_intensity /sys%p/effect /sys%p/key_colors"

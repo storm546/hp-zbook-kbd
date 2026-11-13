@@ -1,0 +1,10 @@
+[Unit]
+Description=Restore ZBook keyboard lighting
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/hpkbd restore
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

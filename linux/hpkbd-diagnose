@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""Print a hardware report without sending commands to the keyboard."""
+import json
+from pathlib import Path
+import platform
+
+
+def read(path):
+    try:
+        return Path(path).read_text().strip()
+    except OSError:
+        return None
+
+
+def report(sysfs=Path('/sys')):
+    dmi = sysfs / 'class/dmi/id'
+    result = {
+        'kernel': platform.release(),
+        'manufacturer': read(dmi / 'sys_vendor'),
+        'model': read(dmi / 'product_name'),
+        'board': read(dmi / 'board_name'),
+        'controllers': [],
+    }
+    for device in sorted((sysfs / 'bus/usb/devices').glob('*')):
+        if read(device / 'idVendor') != '1fc9' or read(device / 'idProduct') != '2238':
+            continue
+        entry = {'usb_id': '1fc9:2238', 'interfaces': []}
+        for interface in sorted(device.parent.glob(device.name + ':*')):
+            item = {'number': read(interface / 'bInterfaceNumber'), 'class': read(interface / 'bInterfaceClass')}
+            for hid in interface.glob('0003:*'):
+                item['driver'] = (hid / 'driver').resolve().name if (hid / 'driver').exists() else None
+                try:
+                    item['report_descriptor_hex'] = (hid / 'report_descriptor').read_bytes().hex()
+                except OSError:
+                    pass
+            entry['interfaces'].append(item)
+        result['controllers'].append(entry)
+    result['tested_model'] = result['manufacturer'] in ('HP', 'Hewlett-Packard') and result['board'] == '8873'
+    return result
+
+
+if __name__ == '__main__':
+    print(json.dumps(report(), indent=2))
