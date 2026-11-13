@@ -13,7 +13,8 @@ Version 0.3 was tested on hardware with Linux 7.2.11. Its module also built for
 Fourteen invalid sysfs requests were rejected. Protocol regression tests cover
 six-colour packets and short/unrelated replies.
 
-Version 0.4 adds report-layout checks and opt-in support for untested HP boards.
+Version 0.4.1 adds report-layout checks and opt-in support for untested HP boards.
+It also avoids an ACK timeout when the LED core unregisters during driver unload.
 A full reboot and suspend/resume test are still needed. Windows was checked for
 packet compatibility; it has not had the same audit.
 

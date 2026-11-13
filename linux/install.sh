@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-version=0.4
+version=0.4.1
 module=hid-hp-zbook-kbd
 source_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 target_user=${SUDO_USER:-}

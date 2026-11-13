@@ -138,6 +138,7 @@ struct zkbd {
 	u8 expect_idx;
 	u8 reply[ZKBD_PKT_LEN];
 	u8 *buf;			/* DMA-safe: report id + packet */
+	bool removing;
 
 	u8 user[3][ZKBD_KEYS];		/* per-key base colours */
 	u8 keys[3][ZKBD_KEYS];		/* scaled colours actually sent */
@@ -181,6 +182,8 @@ static int zkbd_xfer(struct zkbd *z, u8 cmd, u8 idx, u16 hdr_len,
 	int ret;
 
 	lockdep_assert_held(&z->lock);
+	if (READ_ONCE(z->removing))
+		return -ENODEV;
 	if (len > ZKBD_PKT_LEN - ZKBD_HDR_LEN)
 		return -EINVAL;
 
@@ -313,6 +316,9 @@ static int zkbd_led_set(struct led_classdev *cdev, enum led_brightness b)
 	struct zkbd *z = container_of(lcdev_to_mccdev(cdev), struct zkbd, mc);
 	int ret;
 
+	/* HID input is stopped during remove, so an ACK cannot arrive. */
+	if (READ_ONCE(z->removing))
+		return 0;
 	mutex_lock(&z->lock);
 	ret = zkbd_apply(z, b);
 	mutex_unlock(&z->lock);
@@ -813,6 +819,7 @@ static void zkbd_remove(struct hid_device *hdev)
 	struct zkbd *z = hid_get_drvdata(hdev);
 
 	if (z) {
+		WRITE_ONCE(z->removing, true);
 		zkbd_hotkeys_stop(z);
 		sysfs_remove_groups(&z->mc.led_cdev.dev->kobj, zkbd_groups);
 		led_classdev_multicolor_unregister(&z->mc);
@@ -871,5 +878,5 @@ module_hid_driver(zkbd_driver);
 
 MODULE_DESCRIPTION("HP ZBook Studio G8 per-key RGB keyboard backlight");
 MODULE_LICENSE("GPL");
-MODULE_VERSION("0.4");
+MODULE_VERSION("0.4.1");
 MODULE_SOFTDEP("pre: i8042");
